@@ -20,6 +20,19 @@ def create_button(text, row, column):
     button.grid(row=row, column=column)
 
 
+def keyboard_create_button(char):
+    def on_press(event):
+        current = entry.get()
+        entry.delete(0, tk.END)
+        entry.insert(0, current + char)
+    window.bind(char, on_press)
+
+
+for key in "0123456789+-*/().":
+    keyboard_create_button(key)
+window.bind("<Return>", lambda event: calculate_result())
+
+
 create_button("0", 4, 1)
 create_button("1", 3, 0)
 create_button("2", 3, 1)
@@ -174,7 +187,32 @@ pi_button.grid(row=4, column=5)
 pi_button.grid_remove()
 scientific_buttons.append(pi_button)
 
-# Graph trial
+x_button = tk.Button(window, text="x", width=5, height=2,
+                     command=lambda: entry.insert(tk.END, "x"))
+x_button.grid(row=4, column=4)
+x_button.grid_remove()
+scientific_buttons.append(x_button)
+
+
+# theme toggle (not yet working) // Tema butonu (tam anlamıyla çalışmıyor)
+
+
+def theme_toggle():
+    global dark
+    dark = False
+    dark = not dark
+    bg = "Black" if dark else "white"
+    fg = "white" if dark else "black"
+    window.configure(bg=bg)
+    entry.configure(bg=bg, fg=fg, insertbackground=fg)
+
+
+theme_toggle_button = tk.Button(
+    window, text="theme", width=5, height=2, command=theme_toggle)
+theme_toggle_button.grid(row=5, column=2)
+
+
+# Graph drawing code // grafik çizme kodu
 
 
 def func_graph():
