@@ -5,6 +5,38 @@ import numpy
 
 window = tk.Tk()
 sci_mode = False
+is_dark_mode = False
+is_history_visible = False
+is_unit_converter_visible = False
+
+window.resizable(True, True)
+
+button_list = []
+
+# Colors for light mode
+entry_bg_light = "white"
+entry_fg_light = "black"
+
+# Colors for dark mode
+entry_bg_dark = "#333333"
+entry_fg_dark = "white"
+
+# Window
+window_bg_light = "white"
+window_bg_dark = "#121212"
+
+# history panel
+history_bg_light = "white"
+history_fg_light = "black"
+history_bg_dark = "#333333"
+history_fg_dark = "white"
+
+# Unit converter panel
+unit_bg_light = "white"
+unit_fg_light = "black"
+unit_bg_dark = "#333333"
+unit_fg_dark = "white"
+
 window.title("Calculator")
 
 entry = tk.Entry(window)
@@ -18,6 +50,7 @@ def create_button(text, row, column):
         entry.insert(0, clicked + text)
     button = tk.Button(window, text=text, width=5, height=2, command=on_click)
     button.grid(row=row, column=column)
+    button_list.append(button)
 
 
 def keyboard_create_button(char):
@@ -31,6 +64,8 @@ def keyboard_create_button(char):
 for key in "0123456789+-*/().":
     keyboard_create_button(key)
 window.bind("<Return>", lambda event: calculate_result())
+window.bind("<BackSpace>", lambda event: func_backspace())
+window.bind("c", lambda event: func_clear())
 
 
 create_button("0", 4, 1)
@@ -52,6 +87,7 @@ create_button("-", 4, 3)
 create_button("(", 5, 0)
 create_button(")", 5, 1)
 
+
 def func_clear():
     entry.delete(0, tk.END)
 
@@ -59,13 +95,17 @@ def func_clear():
 clear_button = tk.Button(window, text="C", width=5,
                          height=2, command=func_clear)
 clear_button.grid(row=0, column=3)
+button_list.append(clear_button)
 
 
 def calculate_result():
+    expression = entry.get()
     try:
         result = eval(entry.get())
         entry.delete(0, tk.END)
         entry.insert(0, str(result))
+
+        history_listbox.insert(tk.END, f"{expression} = {result}")
     except:
         entry.delete(0, tk.END)
         entry.insert(0, "Error")
@@ -74,9 +114,10 @@ def calculate_result():
 equal_button = tk.Button(window, text="=", width=5,
                          height=2, command=calculate_result)
 equal_button.grid(row=4, column=2)
+button_list.append(equal_button)
 
 
-# Basit hesap makinesi kodu sonu
+# Basit hesap makinesi kodu sonu // Basic calculator code ends here
 
 
 def func_backspace():
@@ -88,6 +129,7 @@ def func_backspace():
 backspace_button = tk.Button(
     window, text="←", width=5, height=2, command=func_backspace)
 backspace_button.grid(row=0, column=4)
+button_list.append(backspace_button)
 
 
 def sci_func():
@@ -107,6 +149,7 @@ scientific_buttons = []
 
 sci_button = tk.Button(window, text="SCI", width=5, height=2, command=sci_func)
 sci_button.grid(row=1, column=4)
+button_list.append(sci_button)
 
 
 def func_squareroot():
@@ -125,6 +168,7 @@ sqrt_button = tk.Button(window, text="√", width=5,
 sqrt_button.grid(row=1, column=5)
 sqrt_button.grid_remove()
 scientific_buttons.append(sqrt_button)
+button_list.append(sqrt_button)
 
 
 def func_power():
@@ -139,6 +183,7 @@ def func_power():
 power_button = tk.Button(window, text="x^y", width=5,
                          height=2, command=func_power)
 power_button.grid(row=2, column=4)
+button_list.append(power_button)
 
 
 def func_factorial():
@@ -157,6 +202,7 @@ factorial_button = tk.Button(
 factorial_button.grid(row=2, column=5)
 factorial_button.grid_remove()
 scientific_buttons.append(factorial_button)
+button_list.append(factorial_button)
 
 
 def func_logarithm():
@@ -176,6 +222,7 @@ logarithm_button = tk.Button(
 logarithm_button.grid(row=3, column=5)
 logarithm_button.grid_remove()
 scientific_buttons.append(logarithm_button)
+button_list.append(logarithm_button)
 
 
 def func_pi():
@@ -187,33 +234,172 @@ pi_button = tk.Button(window, text="π", width=5, height=2, command=func_pi)
 pi_button.grid(row=4, column=5)
 pi_button.grid_remove()
 scientific_buttons.append(pi_button)
+button_list.append(pi_button)
 
 x_button = tk.Button(window, text="x", width=5, height=2,
                      command=lambda: entry.insert(tk.END, "x"))
 x_button.grid(row=4, column=4)
 x_button.grid_remove()
 scientific_buttons.append(x_button)
+button_list.append(x_button)
 
 
-# theme toggle (not yet working) // Tema butonu (tam anlamıyla çalışmıyor)
+def toggle_history():
+    global is_history_visible
+    is_history_visible = not is_history_visible
+
+    if is_history_visible:
+        history_frame.grid(row=0, column=8, rowspan=5)
+    else:
+        history_frame.grid_remove()
 
 
-def theme_toggle():
-    global dark
-    dark = False
-    dark = not dark
-    bg = "Black" if dark else "white"
-    fg = "white" if dark else "black"
-    window.configure(bg=bg)
-    entry.configure(bg=bg, fg=fg, insertbackground=fg)
+history_toggle_button = tk.Button(
+    window, text="History", width=5, height=2, command=toggle_history)
+history_toggle_button.grid(row=5, column=3)
+button_list.append(history_toggle_button)
 
 
-theme_toggle_button = tk.Button(
-    window, text="theme", width=5, height=2, command=theme_toggle)
-theme_toggle_button.grid(row=5, column=2)
+history_frame = tk.Frame(window)
+history_listbox = tk.Listbox(history_frame, height=10, width=30)
+history_listbox.pack(padx=5, pady=5)
 
 
-# Graph drawing code // grafik çizme kodu
+def clear_history():
+    history_listbox.delete(0, tk.END)
+
+
+clear_history_button = tk.Button(
+    history_frame, text="Clear History", command=clear_history)
+clear_history_button.pack(pady=5)
+button_list.append(clear_history_button)
+
+# Unit converter
+
+
+def convert(val, from_unit, to_unit):
+    conversions = {
+        ("Meters", "Kilometers"): lambda x: x / 1000,
+        ("Kilometers", "Meters"): lambda x: x * 1000,
+        ("Meters", "Miles"): lambda x: x / 1609.34,
+        ("Miles", "Meters"): lambda x: x * 1609.34,
+        ("Miles", "Kilometers"): lambda x: x * 1.60934,
+        ("kilometers", "Miles"): lambda x: x / 1.60934,
+        ("Grams", "Kilograms"): lambda x: x / 1000,
+        ("Kilograms", "Grams"): lambda x: x * 1000,
+        ("Grams", "Pounds"): lambda x: x / 453.592,
+        ("Pounds", "Grams"): lambda x: x * 453.592,
+        ("Celsius", "Fahrenheit"): lambda x: (x * 9/5) + 32,
+        ("Fahrenheit", "Celsius"): lambda x: (x - 32) * 5/9
+    }
+    if from_unit == to_unit:
+        return val
+    key = (from_unit, to_unit)
+    if key in conversions:
+        return conversions[key](val)
+    return "Error"
+
+
+unit_frame = tk.Frame(window)
+unit_input = tk.Entry(unit_frame, width=10)
+unit_input.grid(row=0, column=0, padx=5)
+
+button_list.append(unit_input)
+
+from_var = tk.StringVar(value="Meters")
+to_var = tk.StringVar(value="Kilometers")
+
+from_menu = tk.OptionMenu(unit_frame, from_var, "Meters", "Kilometers",
+                          "Miles", "Grams", "Kilograms", "Pounds", "Celsius", "Fahrenheit")
+from_menu.grid(row=0, column=1, padx=5)
+
+to_menu = tk.OptionMenu(unit_frame, to_var, "Meters", "Kilometers",
+                        "Miles", "Grams", "Kilograms", "Pounds", "Celsius", "Fahrenheit")
+to_menu.grid(row=0, column=2, padx=5)
+
+unit_result = tk.Label(unit_frame, text="")
+unit_result.grid(row=1, column=0, columnspan=3)
+
+button_list.append(from_menu)
+button_list.append(to_menu)
+
+
+def convert_units():
+    try:
+        val = float(unit_input.get())
+        from_unit = from_var.get()
+        to_unit = to_var.get()
+        result = convert(val, from_unit, to_unit)
+        unit_result.config(text=f"{result:.4f}")
+    except ValueError:
+        unit_result.config(text="Invalid input")
+
+
+convert_button = tk.Button(unit_frame, text="Convert", command=convert_units)
+convert_button.grid(row=0, column=3, padx=5)
+button_list.append(convert_button)
+
+
+def toggle_unit_converter():
+    global is_unit_converter_visible
+    is_unit_converter_visible = not is_unit_converter_visible
+    if is_unit_converter_visible:
+        unit_frame.grid(row=6, column=0, columnspan=5, pady=10)
+    else:
+        unit_frame.grid_remove()
+
+
+unit_button = tk.Button(window, text="Unit", width=5,
+                        height=2, command=toggle_unit_converter)
+unit_button.grid(row=5, column=4)
+
+is_unit_converter_visible = False
+button_list.append(unit_button)
+
+
+# theme toggle // Tema butonu
+
+
+def toggle_theme():
+    global is_dark_mode
+    is_dark_mode = not is_dark_mode
+    window.config(bg=window_bg_dark if is_dark_mode else window_bg_light)
+
+    if is_dark_mode:
+        entry.config(bg=entry_bg_dark, fg=entry_fg_dark)
+        history_listbox.config(bg=history_bg_dark, fg=history_fg_dark)
+        history_frame.config(bg=history_bg_dark)
+        history_listbox.config(
+            bg=history_bg_dark, fg=history_fg_dark, highlightthickness=0)
+        clear_history_button.config(bg="#444444", fg="white")
+        unit_result.config(bg=unit_bg_dark, fg=unit_fg_dark)
+        unit_frame.config(bg=unit_bg_dark)
+        from_menu.config(bg=unit_bg_dark, fg=unit_fg_dark,
+                         highlightthickness=0)
+        to_menu.config(bg=unit_bg_dark, fg=unit_fg_dark, highlightthickness=0)
+        # We do not need to update the background because its already white by default
+
+    else:
+        entry.config(bg=entry_bg_light, fg=entry_fg_light)
+        history_listbox.config(bg=history_bg_light, fg=history_fg_light)
+        history_frame.config(bg=history_bg_light)
+        clear_history_button.config(bg="lightgrey", fg="black")
+        unit_result.config(bg=unit_bg_light, fg=unit_fg_light)
+        unit_frame.config(bg=unit_bg_light)
+
+    for button in button_list:
+        if is_dark_mode:
+            button.config(bg="#444444", fg="white")
+        else:
+            button.config(bg="lightgrey", fg="black")
+
+
+toggle_theme_button = tk.Button(
+    window, text="theme", width=5, height=2, command=toggle_theme)
+toggle_theme_button.grid(row=5, column=2)
+button_list.append(toggle_theme_button)
+
+# Graph trial // Grafik denemesi
 
 
 def func_graph():
@@ -246,6 +432,7 @@ graph_button = tk.Button(window, text="Graph", width=5,
 graph_button.grid(row=3, column=4)
 graph_button.grid_remove()
 scientific_buttons.append(graph_button)
+button_list.append(graph_button)
 
 
 window.mainloop()
